@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { envs } from '../config/envs.js';
 import { CreateProductDto } from './dto/create-product.dto.js';
@@ -21,6 +21,7 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
     this.logger.log('Database connected');
   }
 
+
   //* Create a new product
   create(createProductDto: CreateProductDto) {
 
@@ -29,6 +30,7 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
       data: createProductDto
     }) 
   }
+
 
   //* Find all products with pagination
   async findAll(paginationDto: PaginationDto) {
@@ -39,6 +41,7 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
 
     return {
       data: await this.product.findMany({
+        where: { availabe: true },
         skip: (page - 1) * limit,
         take: limit
       }),
@@ -50,17 +53,49 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
     };
   }
 
-  findOne(id: string) {
-    return this.product.findUnique({
-      where: { id }
+
+  //* Find a product by ID
+  async findOne(id: string) {
+
+    const product = await this.product.findFirst({
+      where: { id, availabe: true }
     });
+
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${id} not found`);
+    }
+
+    return product;
+
   }
 
-  update(id: string, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    
+    await this.findOne(id);
+
+    return this.product.update({
+      where: { id },
+      data: updateProductDto
+    });
+
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} product`;
+  //* Delete a product by ID
+  async remove(id: string) {
+
+    await this.findOne(id);    
+
+    // return this.product.delete({
+    //   where: { id }
+    // });
+
+    // logical delete
+    const product = await this.product.update({
+      where: { id },
+      data: { availabe: false }
+    });
+
+    return product;
+
   }
 }
