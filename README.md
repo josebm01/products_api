@@ -1,33 +1,10 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Products MS
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-Microservicio de Productos (Products MS) construido con [NestJS](https://github.com/nestjs/nest), [Prisma](https://www.prisma.io/) y SQLite.
+Microservicio de Productos construido con [NestJS](https://nestjs.com/), [Prisma](https://www.prisma.io/) (con el adaptador `better-sqlite3`) y SQLite.
 
 ## Requisitos previos
 
-- Node.js (v22+ recomendado)
+- Node.js v22+
 - npm
 
 ## Cómo levantar el proyecto
@@ -35,126 +12,114 @@ Microservicio de Productos (Products MS) construido con [NestJS](https://github.
 1. **Instalar dependencias**
 
    ```bash
-   $ npm install
+   npm install
    ```
 
 2. **Configurar variables de entorno**
 
-   Copia el archivo de ejemplo y ajusta los valores si es necesario:
-
    ```bash
-   $ cp .env.template .env
+   cp .env.template .env
    ```
 
-   Variables disponibles:
+   | Variable       | Descripción                         | Valor en `.env.template` |
+   | -------------- | ----------------------------------- | ------------------------ |
+   | `PORT`         | Puerto en el que corre la app       | `3001`                   |
+   | `DATABASE_URL` | Ruta de conexión a la base SQLite   | `file:./dev.db`          |
 
-   | Variable       | Descripción                          | Valor por defecto     |
-   | -------------- | ------------------------------------- | ---------------------- |
-   | `PORT`         | Puerto en el que corre la aplicación   | `3001`                 |
-   | `DATABASE_URL` | Ruta de conexión a la base SQLite      | `file:./dev.db`        |
+   > Si `PORT` no está definido, la app usa `3000` por defecto ([src/config/envs.ts](src/config/envs.ts)).
 
-3. **Aplicar migraciones de la base de datos**
-
-   El proyecto usa Prisma con SQLite; esto genera el cliente y crea `dev.db` con las migraciones existentes:
+3. **Aplicar migraciones y generar el cliente de Prisma**
 
    ```bash
-   $ npx prisma migrate dev
+   npx prisma migrate dev
+   npx prisma generate
    ```
 
-4. **Levantar el proyecto**
+   El cliente se genera en `src/generated/prisma` (ignorado por git), así que este paso es obligatorio tras clonar el repo.
+
+4. **(Opcional) Poblar la base de datos con datos de prueba**
 
    ```bash
-   # desarrollo
-   $ npm run start
+   npm run seed
+   ```
 
+   Inserta ~47 productos de ejemplo definidos en [src/seed.ts](src/seed.ts).
+
+5. **Levantar la aplicación**
+
+   ```bash
    # modo watch (recomendado en desarrollo)
-   $ npm run start:dev
+   npm run start:dev
+
+   # desarrollo sin watch
+   npm run start
 
    # producción
-   $ npm run build
-   $ npm run start:prod
+   npm run build
+   npm run start:prod
    ```
 
-   Una vez arriba, la app quedará escuchando en `http://localhost:3001` (o el puerto configurado en `PORT`).
+   La app queda escuchando en `http://localhost:3001` (o el puerto configurado en `PORT`).
 
-## Compile and run the project
+## Estructura del proyecto
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```
+products-ms/
+├── prisma/
+│   ├── migrations/              # Migraciones de la base de datos
+│   └── schema.prisma            # Modelo Product y configuración del cliente
+├── src/
+│   ├── common/
+│   │   ├── dto/pagination.dto.ts  # DTO de paginación (page, limit)
+│   │   └── index.ts
+│   ├── config/
+│   │   ├── envs.ts              # Carga y validación de variables de entorno (Joi)
+│   │   └── index.ts
+│   ├── generated/prisma/        # Cliente de Prisma generado (no versionado)
+│   ├── products/
+│   │   ├── dto/                 # CreateProductDto, UpdateProductDto
+│   │   ├── entities/
+│   │   ├── products.controller.ts
+│   │   ├── products.module.ts
+│   │   └── products.service.ts  # Extiende PrismaClient para acceder a la BD
+│   ├── app.module.ts
+│   ├── main.ts                  # Bootstrap + ValidationPipe global
+│   └── seed.ts                  # Script de seed
+├── test/                        # Pruebas e2e
+├── .env.template
+├── prisma.config.ts             # Configuración de Prisma (schema, migraciones, datasource)
+├── vitest.config.ts
+└── vitest.config.e2e.ts
 ```
 
-## Run tests
+## Endpoints
 
-```bash
-# unit tests
-$ npm run test
+Base: `http://localhost:3001/products`
 
-# e2e tests
-$ npm run test:e2e
+| Método   | Ruta            | Descripción                                          |
+| -------- | --------------- | ---------------------------------------------------- |
+| `POST`   | `/products`     | Crea un producto. Body: `{ "name": string, "price": number }` |
+| `GET`    | `/products`     | Lista productos paginados. Query: `?page=1&limit=10` |
+| `GET`    | `/products/:id` | Obtiene un producto por ID (404 si no existe)        |
+| `PATCH`  | `/products/:id` | Actualiza un producto *(pendiente de implementar)*   |
+| `DELETE` | `/products/:id` | Elimina un producto *(pendiente de implementar)*     |
 
-# test coverage
-$ npm run test:cov
+La respuesta de `GET /products` tiene la forma:
+
+```json
+{
+  "data": [ /* productos */ ],
+  "meta": { "total": 47, "page": 1, "lastPage": 5 }
+}
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Scripts útiles
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run test       # pruebas unitarias (Vitest)
+npm run test:e2e   # pruebas e2e
+npm run test:cov   # cobertura
+npm run lint       # oxlint
+npm run format     # prettier
+npx prisma studio  # explorar la base de datos en el navegador
 ```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
